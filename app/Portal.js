@@ -13,12 +13,57 @@ function Hl({ text, re }) {
   return String(text).split(re).map((p, i) => (i % 2 ? <mark key={i}>{p}</mark> : p));
 }
 
-function Compass() {
+/* ---------- 아이콘 (선 아이콘, 파스텔 타일) ---------- */
+const ICONS = {
+  인사: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.4 0 4 1.6 4.5 4.5"/>',
+  군수: '<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/>',
+  작전: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
+  보안: '<path d="M12 3 4.5 6v5.5c0 4.5 3.2 8 7.5 9.5 4.3-1.5 7.5-5 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/>',
+  교육훈련: '<path d="M2 9.5 12 5l10 4.5L12 14z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/><path d="M22 9.5V15"/>',
+  정보통신: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+  법무: '<path d="M12 4v16M7 20h10M5 7h14"/><path d="M5 7l-2.5 6h5z"/><path d="M19 7l-2.5 6h5z"/>',
+  기타: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  전체: '<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>',
+  ai: '<path d="M12 3l1.8 4.7 4.7 1.8-4.7 1.8L12 16l-1.8-4.7-4.7-1.8 4.7-1.8z"/><path d="M19 15l.8 2.2 2.2.8-2.2.8L19 21l-.8-2.2-2.2-.8 2.2-.8z"/>',
+  fire: '<path d="M12 21c-3.9 0-7-2.8-7-6.5 0-3.2 2.2-5.3 3.5-7 .3 2 1.3 3 2.5 3.5C11 7.5 12.5 5 15 3c0 3.5 4 5.5 4 11.5 0 3.7-3.1 6.5-7 6.5z"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  basket: '<path d="M3 9h18l-1.8 9.2a2 2 0 0 1-2 1.8H6.8a2 2 0 0 1-2-1.8z"/><path d="M8 9l3-5M16 9l-3-5"/><path d="M9.5 13v3M14.5 13v3"/>',
+  book: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/>',
+  pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+  home: '<path d="M4 11 12 4l8 7"/><path d="M6 9.5V20h12V9.5"/>',
+};
+function Icon({ name, size = 20 }) {
+  return <svg className="ico" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML={{ __html: ICONS[name] || ICONS.기타 }} />;
+}
+const FIELD_DESC = { 인사: "휴가·진급·징계", 군수: "물자·시설·보급", 작전: "부대운영·동원", 보안: "비밀·보호구역", 교육훈련: "훈련·예비군", 정보통신: "정보화·데이터", 법무: "처벌·법제업무", 기타: "그 밖의 규정" };
+
+function Logo() {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeWidth="2.4" />
-      <path d="M16 6 L20 16 L16 26 L12 16 Z" fill="currentColor" opacity=".35" />
-      <path d="M16 6 L20 16 L12 16 Z" fill="currentColor" />
+    <span className="logo" aria-hidden="true">
+      <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="none" stroke="#fff" strokeWidth="2.4" /><path d="M16 8.5 19 16h-6z" fill="#FF8A7A" /><path d="M16 23.5 13 16h6z" fill="#fff" /></svg>
+    </span>
+  );
+}
+
+/* 나침반 마스코트 */
+function Mascot() {
+  return (
+    <svg className="mascot" viewBox="0 0 120 120" aria-hidden="true">
+      <ellipse cx="60" cy="112" rx="30" ry="5" fill="#000" opacity=".06" />
+      <circle cx="60" cy="58" r="46" fill="#fff" stroke="var(--accent)" strokeWidth="6" />
+      <circle cx="60" cy="58" r="37" fill="#F2FAF5" />
+      <g stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" opacity=".55">
+        <path d="M60 24v6M60 86v6M26 58h6M88 58h6" />
+      </g>
+      <text x="60" y="21" textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--accent)">N</text>
+      <ellipse cx="47" cy="56" rx="4.5" ry="5.5" fill="#3B3A36" />
+      <ellipse cx="73" cy="56" rx="4.5" ry="5.5" fill="#3B3A36" />
+      <circle cx="48.5" cy="54" r="1.6" fill="#fff" />
+      <circle cx="74.5" cy="54" r="1.6" fill="#fff" />
+      <ellipse cx="39" cy="67" rx="6" ry="3.6" fill="#FFB4A8" opacity=".75" />
+      <ellipse cx="81" cy="67" rx="6" ry="3.6" fill="#FFB4A8" opacity=".75" />
+      <path d="M53 68q7 6 14 0" fill="none" stroke="#3B3A36" strokeWidth="3" strokeLinecap="round" />
+      <path d="M60 2 66 12H54z" fill="#FF8A7A" />
     </svg>
   );
 }
@@ -124,6 +169,7 @@ export default function Portal({ rules }) {
     return [...rules].sort((a, b) => d(b.eff) - d(a.eff)).slice(0, 8);
   }, [rules]);
   const [browseFilter, setBrowseFilter] = useState("");
+  const fieldCount = useMemo(() => rules.reduce((m, r) => ((m[r.field] = (m[r.field] || 0) + 1), m), {}), [rules]);
   const reqId = useRef(0);
 
   useEffect(() => {
@@ -237,28 +283,33 @@ export default function Portal({ rules }) {
   return (
     <div className="wrap">
       <header className="top">
-        <button className="brand" type="button" onClick={goHome} aria-label="규정나침반 홈"><Compass />규정나침반</button>
+        <button className="brand" type="button" onClick={goHome} aria-label="규정나침반 홈"><Logo />규정나침반</button>
         <nav className="nav" aria-label="메뉴">
-          <button type="button" aria-current={true} onClick={goHome}>검색</button>
-          <a className="navlink" href="/admin">규정 등록(관리자)</a>
+          <button type="button" aria-current={view === "home"} onClick={goHome}><Icon name="home" size={16} />홈</button>
+          <button type="button" aria-current={view === "results" && !!res?.browse && !field} onClick={() => browseField(null)}><Icon name="book" size={16} />전체 규정</button>
+          <a className="navlink" href="/admin"><Icon name="pencil" size={16} />규정 등록</a>
         </nav>
       </header>
 
       {view === "home" && (
         <section>
           <div className="hero">
-            <h1>키워드 하나로 군 규정 근거를 찾습니다</h1>
-            <p>AI가 질문을 이해해 관련 조항을 찾고, 조항 원문을 근거로 답합니다.</p>
+            <Mascot />
+            <h1>궁금한 군 규정, 물어보면 바로 찾아드려요</h1>
+            <p>AI가 질문을 이해해 관련 조항을 찾고, 조항 원문을 근거로 답해요.</p>
             <SearchBox id="sb-home" big rules={rules} ranking={ranking} onSearch={onSearch} />
-            <div className="chips" role="group" aria-label="분야">
-              {FIELDS.map((f) => (
-                <button key={f} className="chip" type="button" aria-pressed={field === f} onClick={() => browseField(f)}>{f}</button>
-              ))}
-            </div>
+          </div>
+          <div className="fields" role="group" aria-label="분야별 규정">
+            {FIELDS.map((f) => (
+              <button key={f} type="button" className="ftile" data-f={f} onClick={() => browseField(f)}>
+                <span className="ficon"><Icon name={f} size={22} /></span>
+                <span className="ft"><b>{f}</b><small>{FIELD_DESC[f] || ""} · {fieldCount[f] || 0}건</small></span>
+              </button>
+            ))}
           </div>
           <div className="home-grid">
             <div className="panel">
-              <h2>추천 키워드 순위 <small>관리자 추천 + 내 최근 7일 검색</small></h2>
+              <h2><span className="hicon" data-c="coral"><Icon name="fire" size={18} /></span>추천 키워드 순위 <small>관리자 추천 + 내 최근 7일 검색</small></h2>
               <ol className="rank">
                 {ranking.map((x) => (
                   <li key={x.k}>
@@ -271,7 +322,7 @@ export default function Portal({ rules }) {
               </ol>
             </div>
             <div className="panel">
-              <h2>최근 개정된 규정 <small>전체 {rules.length}건 · 조문 {rules.reduce((s, r) => s + (r.arts || 0), 0).toLocaleString()}개</small></h2>
+              <h2><span className="hicon" data-c="sky"><Icon name="clock" size={18} /></span>최근 개정된 규정 <small>전체 {rules.length}건 · 조문 {rules.reduce((s, r) => s + (r.arts || 0), 0).toLocaleString()}개</small></h2>
               <div className="recent">
                 {recent.map((r) => (
                   <button key={r.id} type="button" onClick={() => { setQ(""); setRes(null); openRule(r.id); }}>
@@ -280,7 +331,7 @@ export default function Portal({ rules }) {
                   </button>
                 ))}
               </div>
-              <button className="btn" type="button" style={{ marginTop: 12 }} onClick={() => browseField(null)}>전체 규정 목록 보기</button>
+              <button className="btn soft" type="button" style={{ marginTop: 12 }} onClick={() => browseField(null)}><Icon name="book" size={16} />전체 규정 목록 보기</button>
             </div>
           </div>
         </section>
@@ -292,19 +343,19 @@ export default function Portal({ rules }) {
             <SearchBox id="sb-results" rules={rules} ranking={ranking} initial={q} onSearch={onSearch} />
           </div>
           <div className="filters" role="group" aria-label="분야 필터">
-            <button className="chip" type="button" aria-pressed={!field} onClick={() => (q ? runSearch(q, null) : browseField(null))}>전체</button>
+            <button className="chip" type="button" aria-pressed={!field} onClick={() => (q ? runSearch(q, null) : browseField(null))}><Icon name="전체" size={15} />전체</button>
             {FIELDS.map((f) => (
-              <button key={f} className="chip" type="button" aria-pressed={field === f} onClick={() => (q ? runSearch(q, f) : browseField(f))}>{f}</button>
+              <button key={f} className="chip" type="button" aria-pressed={field === f} data-f={f} onClick={() => (q ? runSearch(q, f) : browseField(f))}><Icon name={f} size={15} />{f}</button>
             ))}
           </div>
 
           {res?.error && <div className="notice" role="alert">{res.error}</div>}
           {res?.notice && <div className="notice">{res.notice}</div>}
 
-          {q && res?.loading && <div className="loading">AI가 전체 규정에서 관련 조항을 찾는 중</div>}
+          {q && res?.loading && <div className="loading"><Mascot />AI가 전체 규정에서 관련 조항을 찾는 중</div>}
           {q && res?.ai && (
             <div className="aibox">
-              <div className="aihead"><b>AI 답변</b><span className={"conf " + res.ai.confidence}>신뢰도 {res.ai.confidence}</span><span>근거 조항만 보고 작성 · 최종 판단은 원문과 담당자 확인</span></div>
+              <div className="aihead"><span className="hicon" data-c="mint"><Icon name="ai" size={18} /></span><b>AI 답변</b><span className={"conf " + res.ai.confidence}>신뢰도 {res.ai.confidence}</span><span>근거 조항만 보고 작성 · 최종 판단은 원문과 담당자 확인</span></div>
               <p className="ans">{res.ai.answer}</p>
               {res.ai.related.length > 0 && (
                 <div className="cites">
@@ -335,7 +386,7 @@ export default function Portal({ rules }) {
               <input className="browse-filter" value={browseFilter} onChange={(e) => setBrowseFilter(e.target.value)} placeholder="규정명으로 거르기 (예: 예비군)" aria-label="규정명으로 거르기" />
               <ul>
                 {grouped.filter(({ r }) => !browseFilter || r.name.includes(browseFilter.trim())).map(({ r }) => (
-                  <li key={r.id}><button type="button" onClick={() => openRule(r.id)}><span className="t">{r.name}</span><span className="m">{r.kind} · {r.field} · 조문 {r.arts || 0}개 · 시행 {r.eff || "-"}</span></button></li>
+                  <li key={r.id}><button type="button" data-f={r.field} onClick={() => openRule(r.id)}><span className="ficon sm"><Icon name={r.field} size={18} /></span><span className="bt"><span className="t">{r.name}</span><span className="m">{r.kind} · {r.field} · 조문 {r.arts || 0}개 · 시행 {r.eff || "-"}</span></span></button></li>
                 ))}
               </ul>
             </div>
@@ -370,7 +421,7 @@ export default function Portal({ rules }) {
         />
       )}
 
-      <button className="fab" type="button" onClick={() => setSheet(!sheet)}>근거 바구니<span className="c">{basket.length}</span></button>
+      <button className="fab" type="button" onClick={() => setSheet(!sheet)}><Icon name="basket" size={18} />근거 바구니<span className="c">{basket.length}</span></button>
       {sheet && (
         <div className="sheet" role="dialog" aria-label="근거 바구니">
           {!basket.length ? (
