@@ -298,3 +298,23 @@ header.top{position:sticky;top:0;z-index:25;background:color-mix(in srgb,var(--b
 .browse li button{display:flex;align-items:center;gap:12px}
 .browse .bt{display:grid;gap:2px;min-width:0}
 .ficon.sm{width:36px;height:36px;border-radius:12px}
+/* 신분 선택 · 통계 · 피드백 · 공문 초안 */
+.roles{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px}
+.roles .rl{display:inline-flex;align-items:center;gap:4px;font-size:13.5px;color:var(--muted);margin-right:2px}
+.rchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 13px;font-size:13.5px;box-shadow:var(--shadow)}
+.rchip[aria-pressed="true"]{background:#FFE8D9;border-color:#D9622B;color:#C2531F;font-weight:700}
+.roles .rh{flex-basis:100%;text-align:center;font-size:12.5px;color:var(--muted)}
+.roles.compact{justify-content:flex-start;margin:-2px 0 12px}
+.roles.compact .rchip{padding:3px 11px;font-size:12.5px;box-shadow:none}
+.statbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;max-width:860px;margin:0 auto 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 18px;box-shadow:var(--shadow);font-size:14px;color:var(--muted)}
+.statbar b{color:var(--ink);font-size:16px}
+.fb{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.fb button{display:inline-flex;align-items:center;gap:4px;border:0;background:#fff;border-radius:999px;padding:4px 12px;box-shadow:var(--shadow);font-size:13px;color:var(--ink)}
+.fb button:hover{color:var(--accent)}
+.draftbox{display:grid;gap:8px;border-top:1px dashed var(--line);padding-top:12px}
+.draftbox h4{display:flex;align-items:center;gap:8px;margin:0;font-family:var(--f-cute);font-weight:400;font-size:17px}
+.draftbox input{border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-size:14px;background:var(--surface)}
+.draftbox .btn.primary{justify-content:center;padding:9px 14px}
+.draftbox pre.draft{background:#FFFDF6;border:1px solid #F1E6C8}
+.draftbox .tips{margin:0;padding-left:18px;font-size:12.5px;color:#A87A00}
+.note.err{color:#C2410C}
