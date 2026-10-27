@@ -77,7 +77,7 @@ function SearchBox({ id, rules, ranking, initial, onSearch, big }) {
       <form role="search" onSubmit={(e) => { e.preventDefault(); if (sel >= 0 && open && items[sel]) go(items[sel].q, items[sel]); else go(v); }}>
         <input
           id={id} type="search" autoComplete="off" value={v} aria-label="규정 검색"
-          placeholder={big ? "궁금한 걸 그대로 물어보세요 (예: 데이터센터도 이 훈령 적용 대상이야?)" : "키워드나 질문"}
+          placeholder={big ? "궁금한 걸 그대로 물어보세요 (예: 병사 휴대전화 몇 시까지 쓸 수 있어?)" : "키워드나 질문"}
           onChange={(e) => { setV(e.target.value); setOpen(true); setSel(-1); }}
           onKeyDown={(e) => {
             if (!open || !items.length) return;
