@@ -520,8 +520,8 @@ export default function Portal({ rules }) {
               <p className="note">등록된 규정 기준입니다. 공문에 쓰기 전 시행일이 최신인지 원문에서 확인하세요.</p>
               <div className="draftbox">
                 <h4><span className="hicon" data-c="mint"><Icon name="doc" size={18} /></span>공문 초안 만들기</h4>
-                <input value={purpose} onChange={(e) => setPurpose(e.target.value)} maxLength={200} placeholder="어떤 공문인가요? (예: 하계 휴가 시행 계획 보고)" aria-label="공문 목적" />
-                <input value={to} onChange={(e) => setTo(e.target.value)} maxLength={40} placeholder="수신 (예: 수신자 참조, ○○대대장)" aria-label="수신" />
+                <input value={purpose} onChange={(e) => setPurpose(e.target.value)} maxLength={200} placeholder="어떤 공문인가요? (예: 성희롱 예방교육 실시 계획 보고)" aria-label="공문 목적" />
+                <input value={to} onChange={(e) => setTo(e.target.value)} maxLength={40} placeholder="수신 (예: 국방부, 수신자 참조)" aria-label="수신" />
                 <button className="btn primary" type="button" disabled={!purpose.trim() || draft?.loading} onClick={makeDraft}>
                   <Icon name="ai" size={16} />{draft?.loading ? "초안 쓰는 중..." : draft?.draft ? "다시 쓰기" : "AI로 공문 초안 쓰기"}
                 </button>
