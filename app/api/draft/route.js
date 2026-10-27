@@ -9,17 +9,17 @@ export const maxDuration = 60;
 
 const SYSTEM = `너는 대한민국 국군 부대의 공문(행정문서) 작성 도우미다. 사용자가 고른 근거 조항과 공문 목적으로 본문 초안을 쓴다.
 규칙:
-1. "1. 관련 근거"는 이미 들어가 있으니 쓰지 않는다. body는 반드시 "2."로 시작한다.
+1. "1. 관련 근거"는 이미 들어가 있으니 쓰지 않는다. 본문은 lines 배열에 한 줄씩 넣고, 첫 줄은 반드시 "2."로 시작한다.
 2. 2항은 "위 근거에 의거 ~하고자 하오니 ~하여 주시기 바랍니다." 형태의 목적 문장으로 쓴다.
-3. 필요하면 2항 아래에 가./나./다. 하위 항목으로 세부 내용(일시, 대상, 내용, 행정사항 등)을 개조식(~함, ~임)으로 쓴다. 항목 기호는 1. → 가. → 1) → 가) 순서이고 하위 항목은 두 칸씩 들여쓴다.
+3. 필요하면 2항 아래에 가./나./다. 하위 항목으로 세부 내용(일시, 대상, 내용, 행정사항 등)을 개조식(~함, ~임)으로 쓴다. 항목 기호는 1. → 가. → 1) → 가) 순서이고, 항목마다 lines의 새 줄로 쓰며 하위 항목은 앞에 공백을 두 칸씩 더 넣는다.
 4. 근거 조항에 없는 의무나 숫자를 지어내지 않는다. 사용자가 주지 않은 날짜·인원·부대명·연락처는 "○○"으로 비워 둔다.
-5. 본문 마지막은 두 칸 띄우고 "끝."으로 마친다. 붙임이 필요하면 "붙임  ○○ 1부.  끝." 형식.
+5. 마지막 줄 끝에 두 칸 띄우고 "끝."으로 마친다. 붙임이 필요하면 "붙임  ○○ 1부.  끝." 형식.
 6. title은 명사형 공문 제목 (예: "2026년 하계 휴가 시행 계획 보고").
 7. tips에는 보내기 전에 담당자가 확인할 점을 1~3개 짧게 쓴다.`;
 const SCHEMA = {
   type: "OBJECT",
-  properties: { title: { type: "STRING" }, body: { type: "STRING" }, tips: { type: "ARRAY", items: { type: "STRING" } } },
-  required: ["title", "body", "tips"],
+  properties: { title: { type: "STRING" }, lines: { type: "ARRAY", items: { type: "STRING" } }, tips: { type: "ARRAY", items: { type: "STRING" } } },
+  required: ["title", "lines", "tips"],
 };
 
 export async function POST(req) {
@@ -46,7 +46,9 @@ export async function POST(req) {
 
   try {
     const ai = await gemini(SYSTEM, `공문 목적: ${purpose}\n수신: ${to || "○○"}\n작성자 신분: ${role || "미지정"}\n\n이미 들어간 1항:\n${cite}\n\n근거 조항 원문:\n${arts.join("\n")}`, SCHEMA, 0.3);
-    let body = String(ai.body || "").trim();
+    let body = (Array.isArray(ai.lines) ? ai.lines : [String(ai.body || "")]).map((l) => String(l).replace(/\s+$/, "")).filter(Boolean).join("\n").trim();
+    // 한 줄에 몰아 쓴 하위 항목(가. 나. / 1) 2)) 줄바꿈 보정
+    body = body.replace(/[ \t]+(?=[가-하]\.\s)/g, "\n  ").replace(/[ \t]+(?=\d\)\s)/g, "\n    ").replace(/\n\s*끝\.\s*$/, "  끝.");
     if (!/^2\./.test(body)) body = "2. " + body.replace(/^\d+\.\s*/, "");
     if (!/끝\.\s*$/.test(body)) body += "  끝.";
     const title = String(ai.title || purpose).trim();
