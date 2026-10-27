@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/build-rules.mjs",
+    "predev": "node scripts/fetch-rules.mjs && node scripts/build-rules.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/build-rules.mjs",
+    "prebuild": "node scripts/fetch-rules.mjs && node scripts/build-rules.mjs",
     "build": "next build",
     "start": "next start"
   },
