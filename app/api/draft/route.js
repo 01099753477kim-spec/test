@@ -48,7 +48,7 @@ export async function POST(req) {
     const ai = await gemini(SYSTEM, `공문 목적: ${purpose}\n수신: ${to || "○○"}\n작성자 신분: ${role || "미지정"}\n\n이미 들어간 1항:\n${cite}\n\n근거 조항 원문:\n${arts.join("\n")}`, SCHEMA, 0.3);
     let body = (Array.isArray(ai.lines) ? ai.lines : [String(ai.body || "")]).map((l) => String(l).replace(/\s+$/, "")).filter(Boolean).join("\n").trim();
     // 한 줄에 몰아 쓴 하위 항목(가. 나. / 1) 2)) 줄바꿈 보정
-    body = body.replace(/[ \t]+(?=[가-하]\.\s)/g, "\n  ").replace(/[ \t]+(?=\d\)\s)/g, "\n    ").replace(/\n\s*끝\.\s*$/, "  끝.");
+    body = body.replace(/(?<=\S)[ \t]+(?=[가-하]\.\s)/g, "\n  ").replace(/(?<=\S)[ \t]+(?=\d\)\s)/g, "\n    ").replace(/\n{2,}/g, "\n").replace(/\n\s*끝\.\s*$/, "  끝.");
     if (!/^2\./.test(body)) body = "2. " + body.replace(/^\d+\.\s*/, "");
     if (!/끝\.\s*$/.test(body)) body += "  끝.";
     const title = String(ai.title || purpose).trim();
