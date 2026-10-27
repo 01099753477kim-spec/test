@@ -1,0 +1,13 @@
+# 규정나침반 규정 목록 (DB)
+# 한 줄에 규정 하나: 분야 | 추천 키워드(쉼표로 구분) | 국가법령정보센터 링크
+# 분야: 인사, 군수, 작전, 보안, 교육훈련, 정보통신, 법무
+# 배포할 때마다 국가법령정보센터에서 현행 본문을 자동으로 받아옵니다. 줄을 추가하고 Commit하면 끝.
+
+인사 | 양성평등, 성고충전문상담관, 성별영향평가, 일가정양립, 양성평등위원회 | https://law.go.kr/LSW//admRulInfoP.do?admRulSeq=2100000276062&chrClsCd=010201
+인사 | 성희롱, 성폭력, 휴가, 외출, 외박, 병영생활, 휴대전화 | https://law.go.kr/LSW//admRulInfoP.do?admRulSeq=2100000276070&chrClsCd=010201
+인사 | 진급, 보직, 전역, 휴직, 인사관리 | https://law.go.kr/LSW/admRulLsInfoP.do?admRulSeq=2100000262120
+인사 | 성희롱 예방교육, 성폭력 신고, 피해자 보호 | https://law.go.kr/admRulLsInfoP.do?admRulSeq=2100000202927
+인사 | 2차 피해, 피해자 보호, 비밀누설 금지 | https://law.go.kr/LSW/admRulLsInfoP.do?admRulSeq=2100000211569
+법무 | 법제업무, 훈령 제정, 행정규칙 개정, 입법예고 | https://law.go.kr/admRulLsInfoP.do?admRulId=27252&efYd=0
+인사 | 기본권, 군인의 의무, 고충처리, 군인권보호관, 병영생활 | https://www.law.go.kr/lsInfoP.do?lsId=012438&ancYnChk=0
+정보통신 | 데이터센터, 정보시스템, 정보화사업, 유지보수, 상호운용성, 정보화전략계획 | https://www.law.go.kr/%ED%96%89%EC%A0%95%EA%B7%9C%EC%B9%99/%EA%B5%AD%EB%B0%A9%EC%A0%95%EB%B3%B4%ED%99%94%EC%97%85%EB%AC%B4%ED%9B%88%EB%A0%B9
