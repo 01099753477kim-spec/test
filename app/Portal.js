@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { FIELDS, SYN, termsOf, termRegex, scoreArt, lineClass, sensitiveCheck, artKey } from "../lib/rulecore.mjs";
+import { FIELDS, SYN, ROLES, termsOf, termRegex, scoreArt, lineClass, sensitiveCheck, artKey } from "../lib/rulecore.mjs";
 
 const LETTERS = "가나다라마바사아자차카타파하".split("");
 const store = {
@@ -31,6 +31,11 @@ const ICONS = {
   book: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/>',
   pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
   home: '<path d="M4 11 12 4l8 7"/><path d="M6 9.5V20h12V9.5"/>',
+  up: '<path d="M7 10v10H4V10z"/><path d="M7 10l4-7c1.5 0 2.5 1 2.2 2.6L12.6 9H19a2 2 0 0 1 2 2.3l-1.2 6.6A2.5 2.5 0 0 1 17.3 20H7"/>',
+  down: '<path d="M7 14V4H4v10z"/><path d="M7 14l4 7c1.5 0 2.5-1 2.2-2.6L12.6 15H19a2 2 0 0 0 2-2.3l-1.2-6.6A2.5 2.5 0 0 0 17.3 4H7"/>',
+  doc: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4.5 21c1-4 4-6 7.5-6s6.5 2 7.5 6"/>',
+  chart: '<path d="M4 20V4M4 20h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/>',
 };
 function Icon({ name, size = 20 }) {
   return <svg className="ico" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML={{ __html: ICONS[name] || ICONS.기타 }} />;
@@ -69,7 +74,7 @@ function Mascot() {
 }
 
 /* ---------- 추천 키워드 순위 ---------- */
-function useRanking(rules, tick) {
+function useRanking(rules, tick, serverTop) {
   return useMemo(() => {
     const weight = {};
     rules.forEach((r) => (r.keywords || []).forEach((k, i) => { weight[k] = Math.max(weight[k] || 0, Math.max(10 - i * 0.5, 3)); }));
@@ -81,13 +86,18 @@ function useRanking(rules, tick) {
       const s7 = (L.s || []).filter((t) => now - t < 7 * 864e5).length;
       return { k, score: 0.5 * s7 + 0.3 * (L.c || 0) + 0.2 * weight[k] };
     }).sort((a, b) => b.score - a.score).slice(0, 10);
+    if (serverTop && serverTop.length >= 3) {
+      // 전체 장병 검색 순위(Supabase) 우선, 모자라면 추천 키워드로 채움
+      const srv = serverTop.map((x) => ({ k: x.k, n: x.n, score: x.n }));
+      rows.splice(0, rows.length, ...srv, ...rows.filter((r) => !srv.some((x) => x.k === r.k))); rows.length = Math.min(rows.length, 10);
+    }
     const prev = typeof window === "undefined" ? null : store.get("rc_prevrank", null);
     return rows.map((x, i) => {
       let d = "";
       if (prev) { const p = prev.indexOf(x.k); d = p < 0 ? "NEW" : p > i ? "▲" + (p - i) : p < i ? "▼" + (i - p) : "–"; }
       return { ...x, rank: i + 1, d };
     });
-  }, [rules, tick]);
+  }, [rules, tick, serverTop]);
 }
 function logSearch(q) {
   const k = q.trim(); if (!k) return;
@@ -147,6 +157,17 @@ function SearchBox({ id, rules, ranking, initial, onSearch, big }) {
   );
 }
 
+/* ---------- 신분 선택 ---------- */
+function RolePicker({ role, onPick, compact }) {
+  return (
+    <div className={"roles" + (compact ? " compact" : "")} role="group" aria-label="내 신분">
+      <span className="rl"><Icon name="user" size={16} />{compact ? "내 신분" : "나는"}</span>
+      {ROLES.map((r) => <button key={r} type="button" className="rchip" aria-pressed={role === r} onClick={() => onPick(r)}>{r}</button>)}
+      {!compact && <span className="rh">{role ? `${role}에게 맞는 조항을 먼저 보여드려요` : "신분을 고르면 맞춤 답변을 드려요"}</span>}
+    </div>
+  );
+}
+
 /* ---------- 메인 ---------- */
 export default function Portal({ rules }) {
   const ruleById = useMemo(() => Object.fromEntries(rules.map((r) => [r.id, r])), [rules]);
@@ -163,7 +184,12 @@ export default function Portal({ rules }) {
   const [sheet, setSheet] = useState(false);
   const [toast, setToast] = useState("");
   const [tick, setTick] = useState(0);
-  const ranking = useRanking(rules, tick);
+  const [stats, setStats] = useState(null);
+  const [role, setRoleState] = useState("");
+  const roleRef = useRef("");
+  const setRole = (r) => { const v = role === r ? "" : r; setRoleState(v); roleRef.current = v; store.set("rc_role", v); };
+  const [votes, setVotes] = useState({});
+  const ranking = useRanking(rules, tick, stats?.on ? stats.top : null);
   const recent = useMemo(() => {
     const d = (x) => { const m = String(x || "").match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/); return m ? +m[1] * 10000 + +m[2] * 100 + +m[3] : 0; };
     return [...rules].sort((a, b) => d(b.eff) - d(a.eff)).slice(0, 8);
@@ -174,6 +200,8 @@ export default function Portal({ rules }) {
 
   useEffect(() => {
     setBasket(store.get("rc_basket", []));
+    { const r0 = store.get("rc_role", ""); if (ROLES.includes(r0)) { setRoleState(r0); roleRef.current = r0; } }
+    fetch("/api/stats").then((r) => r.json()).then((d) => d?.on && setStats(d)).catch(() => {});
     if (!store.get("rc_prevrank", null)) store.set("rc_prevrank", ranking.map((x) => x.k));
     setTick((t) => t + 1);
     const onPop = (e) => {
@@ -202,7 +230,7 @@ export default function Portal({ rules }) {
     const my = ++reqId.current;
     setRes({ loading: true, hits: [], ai: null });
     try {
-      const r = await fetch("/api/search", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q: qq, field: fld }) });
+      const r = await fetch("/api/search", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q: qq, field: fld, role: roleRef.current || null }) });
       const data = await r.json();
       if (my !== reqId.current) return;
       if (!r.ok) setRes({ error: data.error || "검색에 실패했습니다.", hits: [] });
@@ -280,6 +308,24 @@ export default function Portal({ rules }) {
     catch { say("복사가 막혀 있습니다. 내용을 직접 선택해 복사하세요"); }
   };
 
+  const vote = (v) => {
+    setVotes({ ...votes, [q]: v });
+    fetch("/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q, vote: v, role: roleRef.current || null, model: res?.ai?.model }) }).catch(() => {});
+  };
+
+  /* 공문 초안 */
+  const [purpose, setPurpose] = useState("");
+  const [to, setTo] = useState("");
+  const [draft, setDraft] = useState(null);
+  const makeDraft = async () => {
+    setDraft({ loading: true });
+    try {
+      const r = await fetch("/api/draft", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ purpose, to, cite: citeText(), items: basket.map(({ ruleId, num }) => ({ ruleId, num })), role: roleRef.current || null }) });
+      const d = await r.json();
+      setDraft(r.ok ? d : { error: d.error || "초안을 만들지 못했습니다." });
+    } catch { setDraft({ error: "서버에 연결하지 못했습니다. 잠시 후 다시 시도하세요." }); }
+  };
+
   return (
     <div className="wrap">
       <header className="top">
@@ -298,6 +344,7 @@ export default function Portal({ rules }) {
             <h1>궁금한 군 규정, 물어보면 바로 찾아드려요</h1>
             <p>AI가 질문을 이해해 관련 조항을 찾고, 조항 원문을 근거로 답해요.</p>
             <SearchBox id="sb-home" big rules={rules} ranking={ranking} onSearch={onSearch} />
+            <RolePicker role={role} onPick={setRole} />
           </div>
           <div className="fields" role="group" aria-label="분야별 규정">
             {FIELDS.map((f) => (
@@ -307,9 +354,17 @@ export default function Portal({ rules }) {
               </button>
             ))}
           </div>
+          {stats?.on && (
+            <div className="statbar">
+              <span className="hicon" data-c="mint"><Icon name="chart" size={18} /></span>
+              <span>이번 주 장병 검색 <b>{stats.total.toLocaleString()}</b>회</span>
+              <span>AI 답변 만족도 <b>{stats.up + stats.down ? Math.round((stats.up / (stats.up + stats.down)) * 100) + "%" : "-"}</b></span>
+              <span>공문 초안 <b>{stats.drafts.toLocaleString()}</b>건</span>
+            </div>
+          )}
           <div className="home-grid">
             <div className="panel">
-              <h2><span className="hicon" data-c="coral"><Icon name="fire" size={18} /></span>추천 키워드 순위 <small>관리자 추천 + 내 최근 7일 검색</small></h2>
+              <h2><span className="hicon" data-c="coral"><Icon name="fire" size={18} /></span>{stats?.on && stats.top.length >= 3 ? "장병 인기 검색어" : "추천 키워드 순위"} <small>{stats?.on && stats.top.length >= 3 ? "전체 장병 최근 7일" : "관리자 추천 + 내 최근 7일 검색"}</small></h2>
               <ol className="rank">
                 {ranking.map((x) => (
                   <li key={x.k}>
@@ -348,6 +403,7 @@ export default function Portal({ rules }) {
               <button key={f} className="chip" type="button" aria-pressed={field === f} data-f={f} onClick={() => (q ? runSearch(q, f) : browseField(f))}><Icon name={f} size={15} />{f}</button>
             ))}
           </div>
+          <RolePicker compact role={role} onPick={(r) => { setRole(r); if (q) runSearch(q, field); }} />
 
           {res?.error && <div className="notice" role="alert">{res.error}</div>}
           {res?.notice && <div className="notice">{res.notice}</div>}
@@ -364,7 +420,18 @@ export default function Portal({ rules }) {
                   ))}
                 </div>
               )}
-              {res.ai.keywords?.length > 0 && <p className="why">AI가 함께 찾은 말: {res.ai.keywords.join(", ")}</p>}
+              {res.ai.keywords?.length > 0 && <p className="why">AI가 함께 찾은 말: {res.ai.keywords.join(", ")}{res.role ? ` · ${res.role} 기준` : ""}</p>}
+              {res.ai.related.length > 0 && (
+                <div className="fb">
+                  {votes[q] ? <span>의견 고마워요! 더 정확해지도록 반영할게요.</span> : (
+                    <>
+                      <span>답변이 도움이 됐나요?</span>
+                      <button type="button" onClick={() => vote(1)}><Icon name="up" size={16} />도움 됐어요</button>
+                      <button type="button" onClick={() => vote(-1)}><Icon name="down" size={16} />아쉬워요</button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -427,7 +494,7 @@ export default function Portal({ rules }) {
           {!basket.length ? (
             <>
               <h3>근거 바구니</h3>
-              <p className="note">규정 상세 화면에서 조항의 [관련 근거로 담기]를 누르면 여기에 모입니다. 모은 조항은 공문 첫 항목 &quot;1. 관련 근거&quot; 형식으로 한 번에 복사됩니다.</p>
+              <p className="note">규정 상세 화면에서 조항의 [관련 근거로 담기]를 누르면 여기에 모입니다. 모은 조항은 공문 첫 항목 &quot;1. 관련 근거&quot; 형식으로 한 번에 복사되고, AI가 공문 초안까지 써 드려요.</p>
             </>
           ) : (
             <>
@@ -451,6 +518,23 @@ export default function Portal({ rules }) {
                 <button className="btn" type="button" onClick={() => setBasket([])}>비우기</button>
               </div>
               <p className="note">등록된 규정 기준입니다. 공문에 쓰기 전 시행일이 최신인지 원문에서 확인하세요.</p>
+              <div className="draftbox">
+                <h4><span className="hicon" data-c="mint"><Icon name="doc" size={18} /></span>공문 초안 만들기</h4>
+                <input value={purpose} onChange={(e) => setPurpose(e.target.value)} maxLength={200} placeholder="어떤 공문인가요? (예: 하계 휴가 시행 계획 보고)" aria-label="공문 목적" />
+                <input value={to} onChange={(e) => setTo(e.target.value)} maxLength={40} placeholder="수신 (예: 수신자 참조, ○○대대장)" aria-label="수신" />
+                <button className="btn primary" type="button" disabled={!purpose.trim() || draft?.loading} onClick={makeDraft}>
+                  <Icon name="ai" size={16} />{draft?.loading ? "초안 쓰는 중..." : draft?.draft ? "다시 쓰기" : "AI로 공문 초안 쓰기"}
+                </button>
+                {draft?.error && <p className="note err">{draft.error}</p>}
+                {draft?.draft && (
+                  <>
+                    <pre className="draft">{draft.draft}</pre>
+                    {draft.tips?.length > 0 && <ul className="tips">{draft.tips.map((t, i) => <li key={i}>{t}</li>)}</ul>}
+                    <div className="row"><button className="btn primary" type="button" onClick={() => copy(draft.draft)}>초안 복사</button></div>
+                    <p className="note">AI가 쓴 초안입니다. ○○ 빈칸을 채우고 부대 공문 양식에 맞게 다듬어 쓰세요.</p>
+                  </>
+                )}
+              </div>
             </>
           )}
         </div>
