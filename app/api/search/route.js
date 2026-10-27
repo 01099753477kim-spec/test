@@ -1,7 +1,7 @@
 // AI 검색 API (2단계)
 //  1단계: Gemini가 질문을 규정 용어 검색어로 바꾸고, 전체 규정명 목록에서 관련 규정 후보를 고름
 //  2단계: 서버가 전체 조문에서 검색 → 상위 조문만 Gemini에게 보여주고 근거 인용 답변 생성
-import { loadAll, searchArts, snippetOf } from "../../../lib/data.mjs";
+import { loadAll, searchArts, snippetOf, excerptOf } from "../../../lib/data.mjs";
 import { sensitiveCheck, artKey } from "../../../lib/rulecore.mjs";
 
 export const runtime = "nodejs";
@@ -11,8 +11,8 @@ const MODELS = [process.env.GEMINI_MODEL || "gemini-3.5-flash-lite", "gemini-3.1
 const cache = new Map(); // 같은 질문 반복 시 무료 한도 절약
 
 const PLAN_SYSTEM = `너는 대한민국 국군 규정 검색 도우미다. 사용자의 질문을 분석한다.
-1. keywords: 질문을 군 규정 조문에 실제로 쓰일 법령 용어로 바꾼 검색어 3~8개 (예: 핸드폰 → 휴대전화, 애인 면회 → 면회, 군대 그만두기 → 전역).
-2. rules: RULES 목록에서 답이 있을 가능성이 높은 규정명을 최대 6개, 목록의 이름 그대로.`;
+1. keywords: 질문을 군 규정 조문에 실제로 쓰일 법령 용어로 바꾼 검색어 3~8개 (예: 핸드폰 → 휴대전화, 애인 면회 → 면회, 군대 그만두기 → 전역, 불참 → 받지 아니한). 처벌·불이익을 묻는 질문이면 벌칙, 징역, 벌금, 과태료, 징계도 넣는다.
+2. rules: RULES 목록에서 답이 있을 가능성이 높은 규정명을 최대 6개, 목록의 이름 그대로. 처벌·의무·권리의 근본 근거는 법률·시행령에 있는 경우가 많으니 해당 법률이 목록에 있으면 포함한다.`;
 const PLAN_SCHEMA = {
   type: "OBJECT",
   properties: { keywords: { type: "ARRAY", items: { type: "STRING" } }, rules: { type: "ARRAY", items: { type: "STRING" } } },
@@ -105,7 +105,7 @@ export async function POST(req) {
 
   // 2단계: 근거 인용 답변
   if (!notice) {
-    const lines = hits.slice(0, 40).map((h) => `[${h.x.key}] ${h.x.r.name} | ${h.x.a.num}(${h.x.a.title}) | ${h.x.text.slice(0, 450)}`);
+    const lines = hits.slice(0, 40).map((h) => `[${h.x.key}] ${h.x.r.name} | ${h.x.a.num}(${h.x.a.title}) | ${excerptOf(h.x.a, re)}`);
     const catalog = [...lines, ...extraTitles].join("\n").slice(0, 60000);
     if (!catalog) {
       result.ai = { answer: "등록된 규정에서 근거를 찾지 못했습니다. 다른 키워드로 검색하거나 행정 담당자에게 확인하세요.", confidence: "낮음", related: [], keywords: result.plan.keywords };
