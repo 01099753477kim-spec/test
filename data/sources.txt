@@ -15,3 +15,24 @@
 법무 | 법제업무, 훈령 제정, 행정규칙 개정, 입법예고 | https://law.go.kr/admRulLsInfoP.do?admRulId=27252&efYd=0
 인사 | 기본권, 군인의 의무, 고충처리, 군인권보호관, 병영생활 | https://www.law.go.kr/lsInfoP.do?lsId=012438&ancYnChk=0
 정보통신 | 데이터센터, 정보시스템, 정보화사업, 유지보수, 상호운용성, 정보화전략계획 | https://www.law.go.kr/%ED%96%89%EC%A0%95%EA%B7%9C%EC%B9%99/%EA%B5%AD%EB%B0%A9%EC%A0%95%EB%B3%B4%ED%99%94%EC%97%85%EB%AC%B4%ED%9B%88%EB%A0%B9
+
+# 군 관련 법률·시행령
+법무 | 군형법, 처벌, 항명, 무단이탈, 군무이탈, 상관모욕 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%ED%98%95%EB%B2%95
+법무 | 군사법원, 군검사, 군사재판, 재판 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%EC%82%AC%EB%B2%95%EC%9B%90%EB%B2%95
+법무 | 군용물 범죄, 군용물 절도, 군수품 횡령 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%EC%9A%A9%EB%AC%BC%20%EB%93%B1%20%EB%B2%94%EC%A3%84%EC%97%90%20%EA%B4%80%ED%95%9C%20%ED%8A%B9%EB%B3%84%EC%A1%B0%EC%B9%98%EB%B2%95
+인사 | 임관, 진급, 전역, 휴직, 복무기간, 징계 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%EC%9D%B8%EC%82%AC%EB%B2%95
+인사 | 진급심사, 전역심사, 휴직기간, 장기복무 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%EC%9D%B8%EC%82%AC%EB%B2%95%20%EC%8B%9C%ED%96%89%EB%A0%B9
+인사 | 징계위원회, 징계절차, 견책, 감봉, 근신 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%EC%9D%B8%20%EC%A7%95%EA%B3%84%EB%A0%B9
+인사 | 휴가, 외출, 병영생활, 고충처리, 영내대기 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%EC%9D%B8%EC%9D%98%20%EC%A7%80%EC%9C%84%20%EB%B0%8F%20%EB%B3%B5%EB%AC%B4%EC%97%90%20%EA%B4%80%ED%95%9C%20%EA%B8%B0%EB%B3%B8%EB%B2%95%20%EC%8B%9C%ED%96%89%EB%A0%B9
+인사 | 입영, 병역의무, 현역, 사회복무, 병역판정검사 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EB%B3%91%EC%97%AD%EB%B2%95
+인사 | 입영연기, 전환복무, 병역판정, 복무기간 단축 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EB%B3%91%EC%97%AD%EB%B2%95%20%EC%8B%9C%ED%96%89%EB%A0%B9
+교육훈련 | 예비군, 예비군훈련, 훈련 불참, 동원, 벌칙 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EC%98%88%EB%B9%84%EA%B5%B0%EB%B2%95
+교육훈련 | 예비군 훈련 보류, 예비군 편성, 훈련 연기 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EC%98%88%EB%B9%84%EA%B5%B0%EB%B2%95%20%EC%8B%9C%ED%96%89%EB%A0%B9
+보안 | 군사기밀, 비밀 누설, 비밀등급, 보안 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%EC%82%AC%EA%B8%B0%EB%B0%80%20%EB%B3%B4%ED%98%B8%EB%B2%95
+보안 | 보호구역, 군사시설, 촬영금지, 출입통제 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%EC%82%AC%EA%B8%B0%EC%A7%80%20%EB%B0%8F%20%EA%B5%B0%EC%82%AC%EC%8B%9C%EC%84%A4%20%EB%B3%B4%ED%98%B8%EB%B2%95
+인사 | 군인연금, 퇴역연금, 퇴직급여, 유족연금 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%EC%9D%B8%EC%97%B0%EA%B8%88%EB%B2%95
+인사 | 공무상 재해, 상이연금, 재해보상, 순직 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%EC%9D%B8%20%EC%9E%AC%ED%95%B4%EB%B3%B4%EC%83%81%EB%B2%95
+인사 | 봉급, 수당, 보수, 호봉 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%EC%9D%B8%EB%B3%B4%EC%88%98%EB%B2%95
+작전 | 국군 조직, 합동참모본부, 각군 본부, 지휘감독 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%AD%EA%B5%B0%EC%A1%B0%EC%A7%81%EB%B2%95
+정보통신 | 국방정보화, 정보자원, 정보시스템, 상호운용성 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%AD%EB%B0%A9%EC%A0%95%EB%B3%B4%ED%99%94%20%EA%B8%B0%EB%B0%98%EC%A1%B0%EC%84%B1%20%EB%B0%8F%20%EA%B5%AD%EB%B0%A9%EC%A0%95%EB%B3%B4%EC%9E%90%EC%9B%90%EA%B4%80%EB%A6%AC%EC%97%90%20%EA%B4%80%ED%95%9C%20%EB%B2%95%EB%A5%A0
+인사 | 군 의료, 군병원, 진료, 건강관리 | https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EA%B5%B0%20%EB%B3%B4%EA%B1%B4%EC%9D%98%EB%A3%8C%EC%97%90%20%EA%B4%80%ED%95%9C%20%EB%B2%95%EB%A5%A0
