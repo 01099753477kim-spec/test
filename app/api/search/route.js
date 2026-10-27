@@ -34,16 +34,18 @@ function buildCatalog(q, field) {
   const pool = rules.filter((r) => !field || r.field === field);
   const all = pool.flatMap((r) => r.items.filter((i) => i.type === "art").map((a) => ({ r, a })));
   const hits = keywordSearch(pool, q, null);
-  const top = new Set(hits.slice(0, 40).map((h) => artKey(h.ruleId, h.num)));
-  // 조문이 많으면 키워드 상위 + 제목만 목록으로 (토큰 절약)
-  const chosen = all.length <= 300 ? all : all.filter(({ r, a }) => top.has(artKey(r.id, a.num))).concat(all.slice(0, 200));
-  let budget = 60000;
+  const topIds = hits.slice(0, 40).map((h) => artKey(h.ruleId, h.num));
+  const top = new Set(topIds);
+  const byId = new Map(all.map((x) => [artKey(x.r.id, x.a.num), x]));
+  // 1) 키워드 상위 조문은 본문 앞부분까지, 2) 나머지는 제목만 (AI가 제목으로 의미 검색)
+  const ordered = [...topIds.map((id) => byId.get(id)).filter(Boolean), ...all.filter(({ r, a }) => !top.has(artKey(r.id, a.num)))];
+  let budget = 70000;
   const lines = [];
-  for (const { r, a } of chosen) {
+  for (const { r, a } of ordered) {
     const id = artKey(r.id, a.num);
-    const len = top.has(id) ? 400 : 120;
-    const body = a.lines.join(" ").slice(0, len);
-    const line = `[${id}] ${r.name} | ${a.num}(${a.title}) | ${body}`;
+    const line = top.has(id)
+      ? `[${id}] ${r.name} | ${a.num}(${a.title}) | ${a.lines.join(" ").slice(0, 400)}`
+      : `[${id}] ${r.name} | ${a.num}(${a.title})`;
     budget -= line.length;
     if (budget < 0) break;
     lines.push(line);
