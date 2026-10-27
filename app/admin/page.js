@@ -69,7 +69,8 @@ ${f.body.trim()}
         <div>
           <h2>등록 방법</h2>
           <ol className="steps">
-            <li>왼쪽에서 규정 정보와 본문을 넣고 파일을 내려받거나 복사합니다.</li>
+            <li><b>가장 쉬운 방법:</b> 국가법령정보센터 링크가 있으면 GitHub의 <code>data/sources.txt</code>에 <code>분야 | 키워드 | 링크</code> 한 줄만 추가하면 됩니다. 국방부 현행 훈령·예규는 이미 전부 자동으로 들어옵니다.</li>
+            <li>링크가 없는 규정은 왼쪽에서 정보와 본문을 넣고 파일을 내려받거나 복사합니다.</li>
             <li>GitHub 저장소의 <code>data/rules</code> 폴더에서 <b>Add file → Upload files</b>(또는 Create new file)로 추가합니다.</li>
             <li>Commit하면 Vercel이 자동으로 다시 배포하고, 1~2분 뒤 검색에 나타납니다.</li>
             <li>개정되면 같은 파일을 새 본문으로 바꿔 Commit합니다.</li>
