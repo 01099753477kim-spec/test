@@ -132,7 +132,7 @@ function SearchBox({ id, rules, ranking, initial, onSearch, big }) {
       <form role="search" onSubmit={(e) => { e.preventDefault(); if (sel >= 0 && open && items[sel]) go(items[sel].q, items[sel]); else go(v); }}>
         <input
           id={id} type="search" autoComplete="off" value={v} aria-label="규정 검색"
-          placeholder={big ? "궁금한 걸 그대로 물어보세요 (예: 병사 휴대전화 몇 시까지 쓸 수 있어?)" : "키워드나 질문"}
+          placeholder={big ? "궁금한 걸 그대로 물어보세요 (예: 용사 휴대전화 몇 시까지 쓸 수 있어?)" : "키워드나 질문"}
           onChange={(e) => { setV(e.target.value); setOpen(true); setSel(-1); }}
           onKeyDown={(e) => {
             if (!open || !items.length) return;
@@ -203,7 +203,7 @@ export default function Portal({ rules }) {
 
   useEffect(() => {
     setBasket(store.get("rc_basket", []));
-    { const r0 = store.get("rc_role", ""); if (ROLES.includes(r0)) { setRoleState(r0); roleRef.current = r0; } }
+    { let r0 = store.get("rc_role", ""); if (r0 === "병사") { r0 = "용사"; store.set("rc_role", r0); } if (ROLES.includes(r0)) { setRoleState(r0); roleRef.current = r0; } }
     fetch("/api/stats").then((r) => r.json()).then((d) => d?.on && setStats(d)).catch(() => {});
     if (!store.get("rc_prevrank", null)) store.set("rc_prevrank", ranking.map((x) => x.k));
     setTick((t) => t + 1);
