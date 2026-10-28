@@ -311,19 +311,22 @@ export default function Portal({ rules }) {
     catch { say("복사가 막혀 있습니다. 내용을 직접 선택해 복사하세요"); }
   };
 
+  // 따봉은 답변의 대표 근거 조항 기준으로 모음 (표현이 달라도 같은 조항이면 같은 숫자)
+  const topArt = res?.ai?.related?.[0] ? `${res.ai.related[0].ruleId}#${res.ai.related[0].num}` : "";
+  const fbKey = topArt || normQ(q);
   useEffect(() => {
     // 답변이 나올 때마다 서버의 누적 수를 다시 받아옴 (다른 장병의 평가 포함)
     if (!q || !res?.ai) return;
-    const k = normQ(q);
-    fetch("/api/feedback?q=" + encodeURIComponent(q), { cache: "no-store" }).then((r) => r.json())
+    const k = fbKey;
+    fetch("/api/feedback?q=" + encodeURIComponent(q) + "&art=" + encodeURIComponent(topArt), { cache: "no-store" }).then((r) => r.json())
       .then((d) => setFbCount((m) => ({ ...m, [k]: { up: Math.max(d.up || 0, m[k]?.up || 0), down: Math.max(d.down || 0, m[k]?.down || 0) } }))).catch(() => {});
-  }, [q, res?.ai]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [q, res?.ai, fbKey]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { setVotes(store.get("rc_votes", {})); }, []);
   const vote = (v) => {
-    const k = normQ(q);
+    const k = fbKey;
     const nv = { ...votes, [k]: v }; setVotes(nv); store.set("rc_votes", nv);
     setFbCount((m) => { const c = m[k] || { up: 0, down: 0 }; return { ...m, [k]: v === 1 ? { ...c, up: c.up + 1 } : { ...c, down: c.down + 1 } }; });
-    fetch("/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q, vote: v, role: roleRef.current || null, model: res?.ai?.model }) }).catch(() => {});
+    fetch("/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q, vote: v, art: topArt || null, role: roleRef.current || null, model: res?.ai?.model }) }).catch(() => {});
   };
 
   /* 공문 초안 */
@@ -436,9 +439,10 @@ export default function Portal({ rules }) {
               {res.ai.keywords?.length > 0 && <p className="why">AI가 함께 찾은 말: {res.ai.keywords.join(", ")}{res.role ? ` · ${res.role} 기준` : ""}</p>}
               {(
                 <div className="fb">
-                  <span>{votes[normQ(q)] ? "의견 고마워요!" : "답변이 도움이 됐나요?"}</span>
-                  <button type="button" aria-pressed={votes[normQ(q)] === 1} disabled={!!votes[normQ(q)]} onClick={() => vote(1)}><Icon name="up" size={16} />도움 됐어요 <b className="cnt">{fbCount[normQ(q)]?.up ?? 0}</b></button>
-                  <button type="button" aria-pressed={votes[normQ(q)] === -1} disabled={!!votes[normQ(q)]} onClick={() => vote(-1)}><Icon name="down" size={16} />아쉬워요 <b className="cnt">{fbCount[normQ(q)]?.down ?? 0}</b></button>
+                  <span>{votes[fbKey] ? "의견 고마워요!" : "답변이 도움이 됐나요?"}</span>
+                  <button type="button" aria-pressed={votes[fbKey] === 1} disabled={!!votes[fbKey]} onClick={() => vote(1)}><Icon name="up" size={16} />도움 됐어요 <b className="cnt">{fbCount[fbKey]?.up ?? 0}</b></button>
+                  <button type="button" aria-pressed={votes[fbKey] === -1} disabled={!!votes[fbKey]} onClick={() => vote(-1)}><Icon name="down" size={16} />아쉬워요 <b className="cnt">{fbCount[fbKey]?.down ?? 0}</b></button>
+                  {topArt && <span className="fbnote">{ruleById[res.ai.related[0].ruleId]?.name} {res.ai.related[0].num} 근거 답변 누적</span>}
                 </div>
               )}
             </div>
