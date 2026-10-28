@@ -1,7 +1,7 @@
 // data/rules/*.txt → data/built/index.json (목록, 브라우저로 보냄) + data/built/all.json (전체 조문, 서버 전용)
 import { readdirSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, basename } from "node:path";
-import { parseRuleFile } from "../lib/rulecore.mjs";
+import { parseRuleFile, rolesOf } from "../lib/rulecore.mjs";
 
 const root = process.cwd();
 const dir = join(root, "data", "rules");
@@ -23,7 +23,7 @@ const autoNames = new Set(rules.filter((r) => r.file.startsWith("_auto_")).map((
 rules = rules.filter((r) => r.file.startsWith("_auto_") || !autoNames.has(r.name));
 rules.sort((a, b) => a.name.localeCompare(b.name, "ko"));
 
-const index = rules.map(({ items, file, ...meta }) => ({ ...meta, arts: items.filter((i) => i.type === "art").length }));
+const index = rules.map(({ items, file, ...meta }) => ({ ...meta, arts: items.filter((i) => i.type === "art").length, roles: rolesOf(meta.name, items) }));
 writeFileSync(join(out, "index.json"), JSON.stringify(index));
 writeFileSync(join(out, "all.json"), JSON.stringify(rules));
 const n = index.reduce((s, r) => s + r.arts, 0);
