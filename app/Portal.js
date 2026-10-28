@@ -35,6 +35,9 @@ const ICONS = {
   down: '<path d="M7 14V4H4v10z"/><path d="M7 14l4 7c1.5 0 2.5-1 2.2-2.6L12.6 15H19a2 2 0 0 0 2-2.3l-1.2-6.6A2.5 2.5 0 0 0 17.3 4H7"/>',
   doc: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4.5 21c1-4 4-6 7.5-6s6.5 2 7.5 6"/>',
+  cu: '<path d="m6 15 6-6 6 6"/>',
+  cd: '<path d="m6 9 6 6 6-6"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
   chart: '<path d="M4 20V4M4 20h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/>',
 };
 function Icon({ name, size = 20 }) {
@@ -333,6 +336,9 @@ export default function Portal({ rules }) {
   const [purpose, setPurpose] = useState("");
   const [to, setTo] = useState("");
   const [draft, setDraft] = useState(null);
+  const [sheetTab, setSheetTab] = useState("list");
+  const [clearArm, setClearArm] = useState(false);
+  const moveCite = (i, d) => { const j = i + d; if (j < 0 || j >= basket.length) return; const n = [...basket]; [n[i], n[j]] = [n[j], n[i]]; setBasket(n); };
   const makeDraft = async () => {
     setDraft({ loading: true });
     try {
@@ -503,54 +509,90 @@ export default function Portal({ rules }) {
 
       <button className="fab" type="button" onClick={() => setSheet(!sheet)}><Icon name="basket" size={18} />근거 바구니<span className="c">{basket.length}</span></button>
       {sheet && (
-        <div className="sheet" role="dialog" aria-label="근거 바구니">
-          {!basket.length ? (
-            <>
-              <h3>근거 바구니</h3>
-              <p className="note">규정 상세 화면에서 조항의 [관련 근거로 담기]를 누르면 여기에 모입니다. 모은 조항은 공문 첫 항목 &quot;1. 관련 근거&quot; 형식으로 한 번에 복사되고, AI가 공문 초안까지 써 드려요.</p>
-            </>
-          ) : (
-            <>
-              <h3>근거 바구니 · {basket.length}개</h3>
-              <ol>
-                {basket.map((b, i) => (
-                  <li key={b.ruleId + b.num}>
-                    <span>{LETTERS[i]}. {citeLine(b) || "(삭제된 규정)"}</span>
-                    <span className="ops">
-                      <button type="button" aria-label="위로" onClick={() => { if (i > 0) { const n = [...basket]; [n[i - 1], n[i]] = [n[i], n[i - 1]]; setBasket(n); } }}>↑</button>
-                      <button type="button" aria-label="아래로" onClick={() => { if (i < basket.length - 1) { const n = [...basket]; [n[i + 1], n[i]] = [n[i], n[i + 1]]; setBasket(n); } }}>↓</button>
-                      <button type="button" aria-label="빼기" onClick={() => setBasket(basket.filter((_, j) => j !== i))}>✕</button>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              <div className="row"><label><input type="checkbox" checked={withNo} onChange={(e) => setWithNo(e.target.checked)} /> 발령번호·발령일 포함</label></div>
-              <pre>{citeText()}</pre>
-              <div className="row">
-                <button className="btn primary" type="button" onClick={() => copy(citeText())}>관련 근거로 복사</button>
-                <button className="btn" type="button" onClick={() => setBasket([])}>비우기</button>
+        <>
+          <div className="scrim" onClick={() => setSheet(false)} />
+          <aside className="drawer" role="dialog" aria-label="근거 바구니">
+            <header className="dh">
+              <div className="dt"><span className="hicon" data-c="mint"><Icon name="basket" size={18} /></span><b>근거 바구니</b><span className="dc">{basket.length}</span></div>
+              <button type="button" className="xbtn" aria-label="닫기" onClick={() => setSheet(false)}><Icon name="x" size={18} /></button>
+            </header>
+            {basket.length > 0 && (
+              <div className="seg" role="tablist">
+                <button type="button" role="tab" aria-selected={sheetTab === "list"} onClick={() => setSheetTab("list")}><Icon name="book" size={15} />근거 목록 <em>{basket.length}</em></button>
+                <button type="button" role="tab" aria-selected={sheetTab === "draft"} onClick={() => setSheetTab("draft")}><Icon name="doc" size={15} />공문 초안</button>
               </div>
-              <p className="note">등록된 규정 기준입니다. 공문에 쓰기 전 시행일이 최신인지 원문에서 확인하세요.</p>
-              <div className="draftbox">
-                <h4><span className="hicon" data-c="mint"><Icon name="doc" size={18} /></span>공문 초안 만들기</h4>
-                <input value={purpose} onChange={(e) => setPurpose(e.target.value)} maxLength={200} placeholder="어떤 공문인가요? (예: 성희롱 예방교육 실시 계획 보고)" aria-label="공문 목적" />
-                <input value={to} onChange={(e) => setTo(e.target.value)} maxLength={40} placeholder="수신 (예: 국방부, 수신자 참조)" aria-label="수신" />
-                <button className="btn primary" type="button" disabled={!purpose.trim() || draft?.loading} onClick={makeDraft}>
-                  <Icon name="ai" size={16} />{draft?.loading ? "초안 쓰는 중..." : draft?.draft ? "다시 쓰기" : "AI로 공문 초안 쓰기"}
-                </button>
-                {draft?.error && <p className="note err">{draft.error}</p>}
-                {draft?.draft && (
+            )}
+            <div className="db">
+              {!basket.length ? (
+                <div className="dempty">
+                  <Mascot />
+                  <b>아직 담긴 근거가 없어요</b>
+                  <p>규정을 열고 조항 옆 <span className="kbd">관련 근거로 담기</span>를 누르면 여기에 모여요. 모은 조항은 공문 &quot;1. 관련 근거&quot;로 한 번에 복사되고, AI가 공문 초안까지 써 드려요.</p>
+                </div>
+              ) : sheetTab === "list" ? (
+                <>
+                  <p className="dhint">카드를 누르면 조항 원문이 열려요 · 화살표로 순서를 바꿔요</p>
+                  <ol className="blist">
+                    {basket.map((b, i) => {
+                      const r = ruleById[b.ruleId];
+                      return (
+                        <li key={b.ruleId + b.num} className="bitem">
+                          <span className="bno">{LETTERS[i]}</span>
+                          <button type="button" className="bmain" title="조항 원문 열기" onClick={() => { setSheet(false); openRule(b.ruleId, b.num); }}>
+                            <span className="bname">{r?.name || "(삭제된 규정)"}</span>
+                            <span className="bart"><b>{b.num}</b>{b.title ? ` ${b.title}` : ""}</span>
+                            {r?.no && <span className="bmeta">{r.no}{r.date ? ` · ${r.date}` : ""}</span>}
+                          </button>
+                          <span className="bops">
+                            <button type="button" aria-label="위로" disabled={i === 0} onClick={() => moveCite(i, -1)}><Icon name="cu" size={16} /></button>
+                            <button type="button" aria-label="아래로" disabled={i === basket.length - 1} onClick={() => moveCite(i, 1)}><Icon name="cd" size={16} /></button>
+                            <button type="button" aria-label="빼기" className="del" onClick={() => setBasket(basket.filter((_, j) => j !== i))}><Icon name="x" size={15} /></button>
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                  <section className="bprev">
+                    <div className="bph"><b>공문에 들어갈 문구</b><label className="chk"><input type="checkbox" checked={withNo} onChange={(e) => setWithNo(e.target.checked)} />발령번호·발령일</label></div>
+                    <pre>{citeText()}</pre>
+                    <p className="note">등록된 규정 기준이에요. 공문에 쓰기 전 시행일이 최신인지 원문에서 확인하세요.</p>
+                  </section>
+                </>
+              ) : (
+                <div className="draftbox">
+                  <p className="dhint">담긴 근거 {basket.length}개로 &quot;1. 관련 근거&quot; 다음 본문을 AI가 써 드려요</p>
+                  <input value={purpose} onChange={(e) => setPurpose(e.target.value)} maxLength={200} placeholder="어떤 공문인가요? (예: 성희롱 예방교육 실시 계획 보고)" aria-label="공문 목적" />
+                  <input value={to} onChange={(e) => setTo(e.target.value)} maxLength={40} placeholder="수신 (예: 국방부, 수신자 참조)" aria-label="수신" />
+                  {draft?.error && <p className="note err">{draft.error}</p>}
+                  {draft?.loading && <div className="loading"><Mascot />AI가 공문 초안을 쓰는 중</div>}
+                  {draft?.draft && (
+                    <>
+                      <pre className="draft">{draft.draft}</pre>
+                      {draft.tips?.length > 0 && <ul className="tips">{draft.tips.map((t, i) => <li key={i}>{t}</li>)}</ul>}
+                      <p className="note">AI가 쓴 초안이에요. ○○ 빈칸을 채우고 부대 공문 양식에 맞게 다듬어 쓰세요.</p>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            {basket.length > 0 && (
+              <footer className="df">
+                {sheetTab === "list" ? (
                   <>
-                    <pre className="draft">{draft.draft}</pre>
-                    {draft.tips?.length > 0 && <ul className="tips">{draft.tips.map((t, i) => <li key={i}>{t}</li>)}</ul>}
-                    <div className="row"><button className="btn primary" type="button" onClick={() => copy(draft.draft)}>초안 복사</button></div>
-                    <p className="note">AI가 쓴 초안입니다. ○○ 빈칸을 채우고 부대 공문 양식에 맞게 다듬어 쓰세요.</p>
+                    <button className="btn primary grow" type="button" onClick={() => copy(citeText())}>관련 근거로 복사</button>
+                    <button className="btn soft" type="button" onClick={() => setSheetTab("draft")}><Icon name="doc" size={15} />공문 초안</button>
+                    <button className={"btn ghost" + (clearArm ? " danger" : "")} type="button" onClick={() => { if (clearArm) { setBasket([]); setClearArm(false); } else { setClearArm(true); setTimeout(() => setClearArm(false), 3000); } }}>{clearArm ? "정말 비울까요?" : "비우기"}</button>
+                  </>
+                ) : (
+                  <>
+                    <button className="btn primary grow" type="button" disabled={!purpose.trim() || draft?.loading} onClick={makeDraft}><Icon name="ai" size={16} />{draft?.loading ? "쓰는 중..." : draft?.draft ? "다시 쓰기" : "AI로 공문 초안 쓰기"}</button>
+                    {draft?.draft && <button className="btn soft" type="button" onClick={() => copy(draft.draft)}>초안 복사</button>}
                   </>
                 )}
-              </div>
-            </>
-          )}
-        </div>
+              </footer>
+            )}
+          </aside>
+        </>
       )}
       {toast && <div className="toast" role="status">{toast}</div>}
     </div>
