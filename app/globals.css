@@ -318,3 +318,9 @@ header.top{position:sticky;top:0;z-index:25;background:color-mix(in srgb,var(--b
 .draftbox pre.draft{background:#FFFDF6;border:1px solid #F1E6C8}
 .draftbox .tips{margin:0;padding-left:18px;font-size:12.5px;color:#A87A00}
 .note.err{color:#C2410C}
+.fb button .cnt{margin-left:2px;min-width:18px;padding:0 6px;border-radius:999px;background:var(--bg);font-size:12px;color:var(--muted)}
+.fb button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.fb button[aria-pressed="true"] .cnt{background:var(--accent);color:#fff}
+.fb button:disabled{cursor:default}
+.fb button:disabled:not([aria-pressed="true"]){opacity:.6}
+.linkbtn{border:0;background:none;padding:0 2px;color:var(--accent);text-decoration:underline;font-size:inherit;cursor:pointer}
