@@ -189,13 +189,16 @@ export default function Portal({ rules }) {
   const roleRef = useRef("");
   const setRole = (r) => { const v = role === r ? "" : r; setRoleState(v); roleRef.current = v; store.set("rc_role", v); };
   const [votes, setVotes] = useState({});
+  const [fbCount, setFbCount] = useState({}); // 질문별 도움 됐어요/아쉬워요 수
+  const forRole = useCallback((r) => !role || (r.roles || []).includes(role), [role]);
+  const roleRules = useMemo(() => rules.filter(forRole), [rules, forRole]);
   const ranking = useRanking(rules, tick, stats?.on ? stats.top : null);
   const recent = useMemo(() => {
     const d = (x) => { const m = String(x || "").match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/); return m ? +m[1] * 10000 + +m[2] * 100 + +m[3] : 0; };
-    return [...rules].sort((a, b) => d(b.eff) - d(a.eff)).slice(0, 8);
-  }, [rules]);
+    return [...roleRules].sort((a, b) => d(b.eff) - d(a.eff)).slice(0, 8);
+  }, [roleRules]);
   const [browseFilter, setBrowseFilter] = useState("");
-  const fieldCount = useMemo(() => rules.reduce((m, r) => ((m[r.field] = (m[r.field] || 0) + 1), m), {}), [rules]);
+  const fieldCount = useMemo(() => roleRules.reduce((m, r) => ((m[r.field] = (m[r.field] || 0) + 1), m), {}), [roleRules]);
   const reqId = useRef(0);
 
   useEffect(() => {
@@ -267,7 +270,7 @@ export default function Portal({ rules }) {
   }, [res]);
 
   const grouped = useMemo(() => {
-    if (!res || res.browse) return rules.filter((r) => !field || r.field === field).map((r) => ({ r, arts: [] }));
+    if (!res || res.browse) return roleRules.filter((r) => !field || r.field === field).map((r) => ({ r, arts: [] }));
     const g = new Map();
     const add = (h, extra) => {
       const r = ruleById[h.ruleId];
@@ -284,7 +287,7 @@ export default function Portal({ rules }) {
       arts: [...x.arts.values()].sort((a, b) => (!!a.ai === !!b.ai ? (b.score || 0) - (a.score || 0) : a.ai ? -1 : 1)),
       total: [...x.arts.values()].reduce((s, a) => s + (a.score || 0) + (a.ai ? 50 : 0), 0),
     })).sort((a, b) => a.rank - b.rank || b.total - a.total);
-  }, [res, rules, ruleById, field]);
+  }, [res, rules, roleRules, ruleById, field]);
 
   /* 근거 바구니 */
   const citeLine = (b) => {
@@ -308,8 +311,14 @@ export default function Portal({ rules }) {
     catch { say("복사가 막혀 있습니다. 내용을 직접 선택해 복사하세요"); }
   };
 
+  useEffect(() => {
+    if (!q || !res?.ai?.related?.length || fbCount[q]) return;
+    fetch("/api/feedback?q=" + encodeURIComponent(q)).then((r) => r.json()).then((d) => setFbCount((m) => ({ ...m, [q]: { up: d.up || 0, down: d.down || 0 } }))).catch(() => {});
+  }, [q, res]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setVotes(store.get("rc_votes", {})); }, []);
   const vote = (v) => {
-    setVotes({ ...votes, [q]: v });
+    const nv = { ...votes, [q]: v }; setVotes(nv); store.set("rc_votes", nv);
+    setFbCount((m) => { const c = m[q] || { up: 0, down: 0 }; return { ...m, [q]: v === 1 ? { ...c, up: c.up + 1 } : { ...c, down: c.down + 1 } }; });
     fetch("/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q, vote: v, role: roleRef.current || null, model: res?.ai?.model }) }).catch(() => {});
   };
 
@@ -350,7 +359,7 @@ export default function Portal({ rules }) {
             {FIELDS.map((f) => (
               <button key={f} type="button" className="ftile" data-f={f} onClick={() => browseField(f)}>
                 <span className="ficon"><Icon name={f} size={22} /></span>
-                <span className="ft"><b>{f}</b><small>{FIELD_DESC[f] || ""} · {fieldCount[f] || 0}건</small></span>
+                <span className="ft"><b>{f}</b><small>{FIELD_DESC[f] || ""} · {role ? `${role} ` : ""}{fieldCount[f] || 0}건</small></span>
               </button>
             ))}
           </div>
@@ -377,7 +386,7 @@ export default function Portal({ rules }) {
               </ol>
             </div>
             <div className="panel">
-              <h2><span className="hicon" data-c="sky"><Icon name="clock" size={18} /></span>최근 개정된 규정 <small>전체 {rules.length}건 · 조문 {rules.reduce((s, r) => s + (r.arts || 0), 0).toLocaleString()}개</small></h2>
+              <h2><span className="hicon" data-c="sky"><Icon name="clock" size={18} /></span>{role ? `${role} 관련 최근 개정` : "최근 개정된 규정"} <small>{role ? `${role} 관련 ${roleRules.length}건 · 전체 ${rules.length}건` : `전체 ${rules.length}건 · 조문 ${rules.reduce((s, r) => s + (r.arts || 0), 0).toLocaleString()}개`}</small></h2>
               <div className="recent">
                 {recent.map((r) => (
                   <button key={r.id} type="button" onClick={() => { setQ(""); setRes(null); openRule(r.id); }}>
@@ -423,13 +432,9 @@ export default function Portal({ rules }) {
               {res.ai.keywords?.length > 0 && <p className="why">AI가 함께 찾은 말: {res.ai.keywords.join(", ")}{res.role ? ` · ${res.role} 기준` : ""}</p>}
               {res.ai.related.length > 0 && (
                 <div className="fb">
-                  {votes[q] ? <span>의견 고마워요! 더 정확해지도록 반영할게요.</span> : (
-                    <>
-                      <span>답변이 도움이 됐나요?</span>
-                      <button type="button" onClick={() => vote(1)}><Icon name="up" size={16} />도움 됐어요</button>
-                      <button type="button" onClick={() => vote(-1)}><Icon name="down" size={16} />아쉬워요</button>
-                    </>
-                  )}
+                  <span>{votes[q] ? "의견 고마워요!" : "답변이 도움이 됐나요?"}</span>
+                  <button type="button" aria-pressed={votes[q] === 1} disabled={!!votes[q]} onClick={() => vote(1)}><Icon name="up" size={16} />도움 됐어요 <b className="cnt">{fbCount[q]?.up ?? 0}</b></button>
+                  <button type="button" aria-pressed={votes[q] === -1} disabled={!!votes[q]} onClick={() => vote(-1)}><Icon name="down" size={16} />아쉬워요 <b className="cnt">{fbCount[q]?.down ?? 0}</b></button>
                 </div>
               )}
             </div>
@@ -437,7 +442,7 @@ export default function Portal({ rules }) {
 
           {!res?.error && !res?.loading && (
             <p className="summary">
-              {q ? <><b>{q}</b> 검색 결과 · 규정 {grouped.length}건, 관련 조항 {grouped.reduce((s, g) => s + g.arts.length, 0)}개</> : <><b>{field || "전체"}</b> 규정 {grouped.length}건</>}
+              {q ? <><b>{q}</b> 검색 결과 · 규정 {grouped.length}건, 관련 조항 {grouped.reduce((s, g) => s + g.arts.length, 0)}개</> : <><b>{field || "전체"}</b> 규정 {grouped.length}건{role ? <> · <b>{role}</b> 관련만 보는 중 <button type="button" className="linkbtn" onClick={() => setRole(role)}>모든 신분 보기</button></> : null}</>}
             </p>
           )}
 
