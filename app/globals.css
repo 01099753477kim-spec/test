@@ -325,3 +325,7 @@ header.top{position:sticky;top:0;z-index:25;background:color-mix(in srgb,var(--b
 .fb button:disabled:not([aria-pressed="true"]){opacity:.6}
 .linkbtn{border:0;background:none;padding:0 2px;color:var(--accent);text-decoration:underline;font-size:inherit;cursor:pointer}
 .fbnote{flex-basis:100%;font-size:12px;color:var(--dim)}
+/* 분야 타일: 건수를 제목 옆 배지로 (PC에서 잘리지 않게) */
+.ftile .fth{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ftile .fcnt{font-size:12px;font-weight:700;color:var(--tf,var(--accent));background:var(--tb,var(--accent-soft));border-radius:999px;padding:1px 9px;white-space:nowrap}
+.ftile small{white-space:normal}
