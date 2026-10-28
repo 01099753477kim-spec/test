@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { FIELDS, SYN, ROLES, termsOf, termRegex, scoreArt, lineClass, sensitiveCheck, artKey } from "../lib/rulecore.mjs";
+import { FIELDS, SYN, ROLES, normQ, termsOf, termRegex, scoreArt, lineClass, sensitiveCheck, artKey } from "../lib/rulecore.mjs";
 
 const LETTERS = "가나다라마바사아자차카타파하".split("");
 const store = {
@@ -312,13 +312,17 @@ export default function Portal({ rules }) {
   };
 
   useEffect(() => {
-    if (!q || !res?.ai?.related?.length || fbCount[q]) return;
-    fetch("/api/feedback?q=" + encodeURIComponent(q)).then((r) => r.json()).then((d) => setFbCount((m) => ({ ...m, [q]: { up: d.up || 0, down: d.down || 0 } }))).catch(() => {});
-  }, [q, res]); // eslint-disable-line react-hooks/exhaustive-deps
+    // 답변이 나올 때마다 서버의 누적 수를 다시 받아옴 (다른 장병의 평가 포함)
+    if (!q || !res?.ai) return;
+    const k = normQ(q);
+    fetch("/api/feedback?q=" + encodeURIComponent(q), { cache: "no-store" }).then((r) => r.json())
+      .then((d) => setFbCount((m) => ({ ...m, [k]: { up: Math.max(d.up || 0, m[k]?.up || 0), down: Math.max(d.down || 0, m[k]?.down || 0) } }))).catch(() => {});
+  }, [q, res?.ai]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { setVotes(store.get("rc_votes", {})); }, []);
   const vote = (v) => {
-    const nv = { ...votes, [q]: v }; setVotes(nv); store.set("rc_votes", nv);
-    setFbCount((m) => { const c = m[q] || { up: 0, down: 0 }; return { ...m, [q]: v === 1 ? { ...c, up: c.up + 1 } : { ...c, down: c.down + 1 } }; });
+    const k = normQ(q);
+    const nv = { ...votes, [k]: v }; setVotes(nv); store.set("rc_votes", nv);
+    setFbCount((m) => { const c = m[k] || { up: 0, down: 0 }; return { ...m, [k]: v === 1 ? { ...c, up: c.up + 1 } : { ...c, down: c.down + 1 } }; });
     fetch("/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q, vote: v, role: roleRef.current || null, model: res?.ai?.model }) }).catch(() => {});
   };
 
@@ -430,11 +434,11 @@ export default function Portal({ rules }) {
                 </div>
               )}
               {res.ai.keywords?.length > 0 && <p className="why">AI가 함께 찾은 말: {res.ai.keywords.join(", ")}{res.role ? ` · ${res.role} 기준` : ""}</p>}
-              {res.ai.related.length > 0 && (
+              {(
                 <div className="fb">
-                  <span>{votes[q] ? "의견 고마워요!" : "답변이 도움이 됐나요?"}</span>
-                  <button type="button" aria-pressed={votes[q] === 1} disabled={!!votes[q]} onClick={() => vote(1)}><Icon name="up" size={16} />도움 됐어요 <b className="cnt">{fbCount[q]?.up ?? 0}</b></button>
-                  <button type="button" aria-pressed={votes[q] === -1} disabled={!!votes[q]} onClick={() => vote(-1)}><Icon name="down" size={16} />아쉬워요 <b className="cnt">{fbCount[q]?.down ?? 0}</b></button>
+                  <span>{votes[normQ(q)] ? "의견 고마워요!" : "답변이 도움이 됐나요?"}</span>
+                  <button type="button" aria-pressed={votes[normQ(q)] === 1} disabled={!!votes[normQ(q)]} onClick={() => vote(1)}><Icon name="up" size={16} />도움 됐어요 <b className="cnt">{fbCount[normQ(q)]?.up ?? 0}</b></button>
+                  <button type="button" aria-pressed={votes[normQ(q)] === -1} disabled={!!votes[normQ(q)]} onClick={() => vote(-1)}><Icon name="down" size={16} />아쉬워요 <b className="cnt">{fbCount[normQ(q)]?.down ?? 0}</b></button>
                 </div>
               )}
             </div>
