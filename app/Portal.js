@@ -366,7 +366,7 @@ export default function Portal({ rules }) {
             {FIELDS.map((f) => (
               <button key={f} type="button" className="ftile" data-f={f} onClick={() => browseField(f)}>
                 <span className="ficon"><Icon name={f} size={22} /></span>
-                <span className="ft"><b>{f}</b><small>{FIELD_DESC[f] || ""} · {role ? `${role} ` : ""}{fieldCount[f] || 0}건</small></span>
+                <span className="ft"><span className="fth"><b>{f}</b><span className="fcnt">{role ? `${role} ` : ""}{fieldCount[f] || 0}건</span></span><small>{FIELD_DESC[f] || ""}</small></span>
               </button>
             ))}
           </div>
